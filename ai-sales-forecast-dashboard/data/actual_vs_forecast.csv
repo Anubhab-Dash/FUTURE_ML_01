@@ -1,0 +1,25 @@
+import pandas as pd
+from prophet import Prophet
+
+# Load your dataset
+df = pd.read_csv("cleaned_sales_data.csv")
+
+# Rename columns for Prophet
+df = df.rename(columns={"data": "ds", "venda": "y"})
+
+# Keep only required columns
+df = df[["ds", "y"]]
+
+# Initialize and train Prophet model
+model = Prophet()
+model.fit(df)
+
+# Create future dataframe (e.g., forecast next 90 days)
+future = model.make_future_dataframe(periods=90)
+forecast = model.predict(future)
+
+# Merge actuals and forecast
+result = pd.merge(df, forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]], on="ds", how="outer")
+
+# Save for Power BI
+result.to_csv("actual_vs_forecast.csv", index=False)
